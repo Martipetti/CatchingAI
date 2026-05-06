@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CatchingAI — RAID Benchmark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-soft: #f7f8fa;
+      --bg-card: #ffffff;
+      --border: #e8eaed;
+      --border-strong: #d0d3d9;
+      --text: #111318;
+      --text-muted: #6b7280;
+      --text-dim: #9ca3af;
+      --blue: #0064ff;
+      --blue-light: #e8f0fe;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 56px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--blue);
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 2rem; }
+
+    .nav-link {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    .lang-toggle {
+      display: flex;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+    }
+    .lang-btn {
+      padding: 0.28rem 0.7rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      transition: all 0.15s;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    .lang-btn.active { background: var(--blue); color: #fff; font-weight: 500; }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem 7rem;
+    }
+
+    .hero {
+      padding: 7rem 0 4rem;
+      max-width: 640px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 6vw, 4.2rem);
+      font-weight: 600;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      color: var(--blue);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      max-width: 520px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    .btn {
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.6rem 1.25rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .btn-primary:hover { background: #0052d4; }
+    .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+
+    .divider { height: 1px; background: var(--border); margin: 3.5rem 0; }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.85rem;
+      letter-spacing: -0.015em;
+    }
+
+    .section-desc {
+      font-size: 0.93rem;
+      color: var(--text-muted);
+      max-width: 620px;
+      line-height: 1.75;
+      margin-bottom: 1.75rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    .card { background: var(--bg-card); padding: 1.5rem; }
+
+    .card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 0.6rem;
+    }
+
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      line-height: 1.35;
+    }
+
+    .card-body { font-size: 0.83rem; color: var(--text-muted); line-height: 1.65; }
+
+    .arch-block {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    .arch-header {
+      padding: 0.6rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      background: var(--bg-soft);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .arch-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    .arch-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .arch-row { display: flex; align-items: stretch; }
+
+    .arch-layer {
+      flex: 1;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 1rem;
+      text-align: center;
+    }
+
+    .arch-layer strong {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+
+    .arch-layer span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .arch-layer.accent { border-color: var(--blue); background: var(--blue-light); }
+    .arch-layer.accent strong { color: var(--blue); }
+
+    .arch-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 0.5rem;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    .arch-note {
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--blue);
+      padding: 0.1rem 0;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    .metric-card { background: var(--bg-card); padding: 1.25rem 1.5rem; }
+
+    .metric-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: 500;
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+
+    .metric-label { font-size: 0.78rem; color: var(--text-muted); }
+
+    .dataset-block {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    .dataset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .dataset-stat {
+      background: var(--bg-soft);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .dataset-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .dataset-desc { font-size: 0.78rem; color: var(--text-muted); }
+
+    .code-block {
+      background: #0f1117;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.77rem;
+      color: #a8b3c8;
+      line-height: 1.9;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+    }
+
+    .code-block .c-green { color: #7ec694; }
+    .code-block .c-blue  { color: #79b8ff; }
+    .code-block .c-amber { color: #ffcb6b; }
+    .code-block .c-dim   { color: #4a5568; }
+
+    .stack-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0; }
+
+    .stack-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      color: var(--text-muted);
+      background: var(--bg-soft);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .footer-links { display: flex; gap: 1.5rem; }
+
+    .footer-link {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-link:hover { color: var(--blue); }
+
+    [data-lang] { display: none; }
+    .lang-en [data-lang="en"] { display: revert; }
+    .lang-it [data-lang="it"] { display: revert; }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 1.25rem; }
+      .nav-link { display: none; }
+      main { padding: 0 1.25rem 5rem; }
+      .card-grid { grid-template-columns: 1fr; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .dataset-grid { grid-template-columns: 1fr 1fr; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body class="lang-en">
+
+<nav>
+  <a href="#" class="nav-logo">CatchingAI</a>
+  <div class="nav-right">
+    <a href="#overview" class="nav-link" data-lang="en">Overview</a>
+    <a href="#overview" class="nav-link" data-lang="it">Panoramica</a>
+    <a href="#architecture" class="nav-link" data-lang="en">Architecture</a>
+    <a href="#architecture" class="nav-link" data-lang="it">Architettura</a>
+    <a href="#dataset" class="nav-link">Dataset</a>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('it')">IT</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <section class="hero fade-in">
+    <p class="hero-eyebrow" data-lang="en">Research · NLP · Classification</p>
+    <p class="hero-eyebrow" data-lang="it">Ricerca · NLP · Classificazione</p>
+    <h1>CatchingAI</h1>
+    <p class="hero-sub" data-lang="en">
+      A fine-tuned BERT classifier trained on the RAID benchmark — the largest dataset for
+      evaluating AI-generated text detectors, spanning 11 LLMs, 8 domains, and 11 adversarial attacks.
+    </p>
+    <p class="hero-sub" data-lang="it">
+      Un classificatore BERT fine-tuned addestrato sul benchmark RAID — il dataset più grande per
+      valutare i rilevatori di testo generato dall'AI, con 11 LLM, 8 domini e 11 attacchi avversariali.
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/Martipetti/CatchingAI" class="btn btn-primary" data-lang="en">
+        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://github.com/Martipetti/CatchingAI" class="btn btn-primary" data-lang="it">
+        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://raid-bench.xyz" class="btn btn-ghost" data-lang="en">RAID Dataset ↗</a>
+      <a href="https://raid-bench.xyz" class="btn btn-ghost" data-lang="it">Dataset RAID ↗</a>
+    </div>
+  </section>
+
+  <section id="overview">
+    <div class="divider"></div>
+    <p class="section-label" data-lang="en">Overview</p>
+    <p class="section-label" data-lang="it">Panoramica</p>
+    <h2 data-lang="en">What is this project?</h2>
+    <h2 data-lang="it">Cos'è questo progetto?</h2>
+    <p class="section-desc" data-lang="en">
+      As large language models become increasingly capable of producing human-like text, distinguishing
+      AI-generated content from genuine human writing is a critical challenge. CatchingAI builds a robust
+      binary classifier using parameter-efficient fine-tuning, making training feasible on consumer hardware.
+    </p>
+    <p class="section-desc" data-lang="it">
+      Man mano che i modelli linguistici producono testo sempre più simile a quello umano, distinguere il
+      contenuto generato dall'AI dalla scrittura umana è una sfida critica. CatchingAI costruisce un
+      classificatore binario robusto usando fine-tuning efficiente, fattibile su hardware consumer.
+    </p>
+    <div class="card-grid fade-in">
+      <div class="card">
+        <p class="card-label" data-lang="en">Task</p>
+        <p class="card-label" data-lang="it">Compito</p>
+        <p class="card-title" data-lang="en">Binary Classification</p>
+        <p class="card-title" data-lang="it">Classificazione Binaria</p>
+        <p class="card-body" data-lang="en">Human-written (0) vs AI-generated (1) across multiple generators and domains.</p>
+        <p class="card-body" data-lang="it">Testo umano (0) vs generato dall'AI (1) su più generatori e domini.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" data-lang="en">Method</p>
+        <p class="card-label" data-lang="it">Metodo</p>
+        <p class="card-title" data-lang="en">Parameter Efficient</p>
+        <p class="card-title" data-lang="it">Efficiente nei Parametri</p>
+        <p class="card-body" data-lang="en">LoRA adapters train only ~1% of parameters, enabling Colab-friendly fine-tuning.</p>
+        <p class="card-body" data-lang="it">Gli adapter LoRA addestrano solo ~1% dei parametri, compatibile con Colab.</p>
+      </div>
+      <div class="card">
+        <p class="card-label" data-lang="en">Evaluation</p>
+        <p class="card-label" data-lang="it">Valutazione</p>
+        <p class="card-title" data-lang="en">Rigorous Metric</p>
+        <p class="card-title" data-lang="it">Metrica Rigorosa</p>
+        <p class="card-body" data-lang="en">Accuracy at a controlled 5% false-positive rate — the official RAID metric.</p>
+        <p class="card-body" data-lang="it">Accuratezza a un tasso di falsi positivi del 5% — la metrica ufficiale RAID.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="divider"></div>
+    <p class="section-label" data-lang="en">Architecture</p>
+    <p class="section-label" data-lang="it">Architettura</p>
+    <h2 data-lang="en">How the model works</h2>
+    <h2 data-lang="it">Come funziona il modello</h2>
+    <p class="section-desc" data-lang="en">
+      The base BERT model is frozen. LoRA injects small trainable rank-decomposition matrices into its
+      linear layers. The classification head is fully fine-tuned from scratch.
+    </p>
+    <p class="section-desc" data-lang="it">
+      Il modello BERT base è congelato. LoRA inietta piccole matrici a rango ridotto nei layer lineari.
+      La testa di classificazione è completamente fine-tuned da zero.
+    </p>
+    <div class="arch-block fade-in">
+      <div class="arch-header">
+        <div class="arch-dot" style="background:#ff5f57"></div>
+        <div class="arch-dot" style="background:#ffbd2e"></div>
+        <div class="arch-dot" style="background:#28c941"></div>
+        <span style="margin-left:0.4rem" data-lang="en">model_architecture.py</span>
+        <span style="margin-left:0.4rem" data-lang="it">architettura_modello.py</span>
+      </div>
+      <div class="arch-body">
+        <div class="arch-row">
+          <div class="arch-layer">
+            <strong data-lang="en">Input Text</strong>
+            <strong data-lang="it">Testo Input</strong>
+            <span data-lang="en">raw string → tokenizer</span>
+            <span data-lang="it">stringa → tokenizer</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-layer">
+            <strong>[CLS] … [SEP]</strong>
+            <span>token IDs + attention mask</span>
+          </div>
+        </div>
+        <div style="text-align:center;font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--text-dim);padding:0.2rem 0;">↓</div>
+        <div class="arch-row">
+          <div class="arch-layer" style="flex:2;">
+            <strong data-lang="en">BERT-base-cased — frozen</strong>
+            <strong data-lang="it">BERT-base-cased — congelato</strong>
+            <span data-lang="en">12 transformer layers · 110M params</span>
+            <span data-lang="it">12 layer transformer · 110M parametri</span>
+          </div>
+        </div>
+        <p class="arch-note" data-lang="en">+ LoRA adapters injected (trained, r=16)</p>
+        <p class="arch-note" data-lang="it">+ LoRA adapter iniettati (addestrati, r=16)</p>
+        <div class="arch-row">
+          <div class="arch-layer">
+            <strong>Pooler</strong>
+            <span>[CLS] → 768-dim</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-layer accent">
+            <strong data-lang="en">Classifier Head</strong>
+            <strong data-lang="it">Testa Classificatore</strong>
+            <span>Linear(768 → 2)</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-layer">
+            <strong data-lang="en">Output</strong>
+            <strong data-lang="it">Output</strong>
+            <span data-lang="en">human / AI</span>
+            <span data-lang="it">umano / AI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="metrics-grid fade-in">
+      <div class="metric-card">
+        <div class="metric-value">~1%</div>
+        <p class="metric-label" data-lang="en">Trainable parameters</p>
+        <p class="metric-label" data-lang="it">Parametri addestrabili</p>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">r=16</div>
+        <p class="metric-label" data-lang="en">LoRA rank</p>
+        <p class="metric-label" data-lang="it">Rango LoRA</p>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">5% FPR</div>
+        <p class="metric-label" data-lang="en">Target false-positive rate</p>
+        <p class="metric-label" data-lang="it">Tasso falsi positivi target</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="dataset">
+    <div class="divider"></div>
+    <p class="section-label">Dataset</p>
+    <h2 data-lang="en">The RAID Benchmark</h2>
+    <h2 data-lang="it">Il Benchmark RAID</h2>
+    <p class="section-desc" data-lang="en">
+      RAID is the largest and most challenging benchmark for machine-generated text detection,
+      introduced at ACL 2024. It covers a wide range of real-world conditions that make detection hard.
+    </p>
+    <p class="section-desc" data-lang="it">
+      RAID è il benchmark più grande e sfidante per il rilevamento di testo generato da macchine,
+      introdotto all'ACL 2024. Copre condizioni del mondo reale che rendono il rilevamento difficile.
+    </p>
+    <div class="dataset-block fade-in">
+      <div class="dataset-grid">
+        <div class="dataset-stat">
+          <span class="dataset-num">10M+</span>
+          <span class="dataset-desc" data-lang="en">total documents</span>
+          <span class="dataset-desc" data-lang="it">documenti totali</span>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-num">11</span>
+          <span class="dataset-desc" data-lang="en">source LLMs</span>
+          <span class="dataset-desc" data-lang="it">LLM sorgente</span>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-num">8</span>
+          <span class="dataset-desc" data-lang="en">text domains</span>
+          <span class="dataset-desc" data-lang="it">domini testuali</span>
+        </div>
+        <div class="dataset-stat">
+          <span class="dataset-num">11</span>
+          <span class="dataset-desc" data-lang="en">adversarial attacks</span>
+          <span class="dataset-desc" data-lang="it">attacchi avversariali</span>
+        </div>
+      </div>
+    </div>
+    <div class="code-block fade-in">
+<span class="c-dim"># Load RAID via the raid-bench package</span>
+<span class="c-blue">from</span> raid.utils <span class="c-blue">import</span> load_data
+
+train_df = load_data(<span class="c-green">"train"</span>, include_adversarial=<span class="c-amber">True</span>)
+
+<span class="c-dim"># Binary label derived from 'model' column</span>
+train_df[<span class="c-green">"label"</span>] = (train_df[<span class="c-green">"model"</span>] != <span class="c-green">"human"</span>).astype(<span class="c-amber">int</span>)
+
+<span class="c-dim"># Filter to selected models</span>
+MODELS = [<span class="c-green">"human"</span>, <span class="c-green">"gpt4"</span>, <span class="c-green">"gpt3"</span>, <span class="c-green">"chatgpt"</span>, <span class="c-green">"gpt2"</span>]
+train_df = train_df[train_df[<span class="c-green">"model"</span>].isin(MODELS)]
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="divider"></div>
+    <p class="section-label" data-lang="en">Tech Stack</p>
+    <p class="section-label" data-lang="it">Stack Tecnologico</p>
+    <h2 data-lang="en">Built with</h2>
+    <h2 data-lang="it">Costruito con</h2>
+    <div class="stack-grid fade-in">
+      <span class="stack-pill">PyTorch</span>
+      <span class="stack-pill">transformers</span>
+      <span class="stack-pill">peft · LoRA</span>
+      <span class="stack-pill">raid-bench</span>
+      <span class="stack-pill">datasets</span>
+      <span class="stack-pill">evaluate</span>
+      <span class="stack-pill">scikit-learn</span>
+      <span class="stack-pill">pandas</span>
+      <span class="stack-pill">numpy</span>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-left" data-lang="en">© 2025 · CatchingAI · MIT License</div>
+  <div class="footer-left" data-lang="it">© 2025 · CatchingAI · Licenza MIT</div>
+  <div class="footer-links">
+    <a href="https://github.com" class="footer-link">GitHub</a>
+    <a href="https://raid-bench.xyz" class="footer-link">RAID ↗</a>
+    <a href="https://aclanthology.org/2024.acl-long.674" class="footer-link">ACL 2024 ↗</a>
+  </div>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.body.className = 'lang-' + lang;
+    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+    });
+    document.documentElement.lang = lang;
+    localStorage.setItem('preferred-lang', lang);
+  }
+  (function() {
+    var saved = localStorage.getItem('preferred-lang');
+    if (saved === 'it') setLang('it');
+  })();
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+</script>
+</body>
+</html>
